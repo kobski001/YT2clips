@@ -1,0 +1,12 @@
+# Required
+yt-dlp>=2025.11.0
+
+# Transcription (OpenAI Whisper). faster-whisper is recommended; openai-whisper also works.
+faster-whisper>=1.1.0
+numpy
+
+# Optional: face-tracking reframe for 9:16 clips
+opencv-python-headless
+
+# Optional (Windows + NVIDIA GPU): lets faster-whisper use CUDA
+# nvidia-cublas-cu12

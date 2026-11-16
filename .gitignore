@@ -49,3 +49,14 @@ test_*.py
 # Logs
 *.log
 logs/
+
+# Downloaded models
+models/
+
+# Test artifacts
+*.jpg
+*.ass
+*.transcript.json
+*.sentences.txt
+*.meta.json
+clip_plan.json

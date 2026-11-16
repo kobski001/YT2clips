@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-"""
-YouTube 视频智能剪辑工具 - Scripts 包
-"""
+"""YouTube Clipper: Whisper-timed clips for TikTok, Shorts, Reels and YouTube."""
 
-__version__ = "1.0.0"
-__author__ = "Claude Code"
+__version__ = "2.0.0"
