@@ -1,4 +1,4 @@
-# YouTube Clipper Skill
+# YT2clips
 
 > A Claude Code skill that turns a YouTube video into ready-to-post clips for TikTok, YouTube
 > Shorts, Instagram Reels and YouTube, with Whisper-timed cuts, face-tracking reframing and
@@ -62,7 +62,12 @@ Requirements: Python 3.9+, FFmpeg with libass, and a JS runtime for yt-dlp
 | macOS | `brew install ffmpeg-full` | `brew install deno` |
 | Linux | `sudo apt install ffmpeg` | `curl -fsSL https://deno.land/install.sh \| sh` |
 
-Then install the skill:
+Then clone the repo and install the skill:
+
+```bash
+git clone https://github.com/kobski001/YT2clips.git
+cd YT2clips
+```
 
 ```bash
 # macOS / Linux / Git Bash

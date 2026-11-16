@@ -1,4 +1,4 @@
-# Install YouTube Clipper as a Claude Code skill (Windows PowerShell).
+# Install YT2clips as a Claude Code skill (Windows PowerShell).
 # Usage: .\install_as_skill.ps1 [-Force]   (-Force replaces an existing install without asking)
 param([switch]$Force)
 $ErrorActionPreference = "Stop"

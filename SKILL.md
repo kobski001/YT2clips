@@ -14,7 +14,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# YouTube Clipper
+# YT2clips
 
 Scripts live in `scripts/` next to this file (the skill's base directory, usually
 `~/.claude/skills/youtube-clipper`). Below, `$S` means that scripts directory. Run them with

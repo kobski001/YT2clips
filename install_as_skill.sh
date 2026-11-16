@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install YouTube Clipper as a Claude Code skill (macOS / Linux / Git Bash).
+# Install YT2clips as a Claude Code skill (macOS / Linux / Git Bash).
 set -e
 
 SKILL_DIR="$HOME/.claude/skills/youtube-clipper"
