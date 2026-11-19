@@ -1,27 +1,71 @@
 # YT2clips
 
-> A Claude Code skill that turns a YouTube video into ready-to-post clips for TikTok, YouTube
-> Shorts, Instagram Reels and YouTube, with Whisper-timed cuts, face-tracking reframing and
-> animated burned-in captions.
+**Paste a YouTube link, get TikToks, Shorts and Reels.** A Claude Code skill that finds the best
+moments in a video, cuts them on exact word boundaries, reformats them for vertical screens and
+burns in animated captions.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Claude Code skill](https://img.shields.io/badge/Claude%20Code-skill-D97757.svg)](https://docs.anthropic.com/en/docs/claude-code)
+[![Release](https://img.shields.io/github/v/release/kobski001/YT2clips)](https://github.com/kobski001/YT2clips/releases)
+
+<table>
+  <tr>
+    <th>Before: a 21-minute 16:9 talk</th>
+    <th>After: a 30-second 9:16 clip</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/before.jpg" width="480" alt="Original 16:9 frame of a speaker on stage"></td>
+    <td align="center" rowspan="2"><img src="assets/demo.gif" width="270" alt="Vertical clip with blurred background, title and word-by-word karaoke captions"></td>
+  </tr>
+  <tr>
+    <td>
+      One prompt:<br>
+      <code>Make a TikTok from https://youtube.com/watch?v=kYXiegTXsEs</code><br><br>
+      Claude picked the moment, wrote the title, cut it on word boundaries, kept the whole frame
+      over a blurred background and added karaoke captions.
+    </td>
+  </tr>
+</table>
+
+<sub>Demo footage: <a href="https://www.youtube.com/watch?v=kYXiegTXsEs">"The value of travel" by Rick Steves, TEDxRainier</a>
+(TEDx Talks), licensed <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>. Clipped and reformatted with YT2clips.</sub>
+
+## Quick start
+
+```bash
+git clone https://github.com/kobski001/YT2clips.git
+cd YT2clips
+bash install_as_skill.sh        # Windows PowerShell: .\install_as_skill.ps1
+```
+
+Then in Claude Code:
+
+```
+Make 3 TikToks and a YouTube highlight from https://www.youtube.com/watch?v=VIDEO_ID
+```
+
+You'll need Python 3.9+, FFmpeg with libass, and deno ([install table below](#installation)).
+
+## What's new in v2.1
+
+- **Blurred-background vertical clips (now the default).** The whole original frame stays
+  visible at full width over a zoomed, blurred copy, so nobody gets cropped out of a wide shot.
+- **Title in the top band.** Each clip's title is shown above the video. Use `title_text` to
+  change it, or `""` to hide it.
 
 ## What it does
 
-1. **Downloads** the video plus its metadata: creator chapters and YouTube's "most replayed"
-   heatmap.
-2. **Transcribes** it with OpenAI Whisper (via faster-whisper) to get word-level timestamps.
-   YouTube captions are the fallback.
-3. **Finds the moments.** Claude reads a numbered sentence list marked with pauses, chapters
-   and most-replayed peaks, then proposes clips per platform: hook-first short clips and
-   complete-arc long clips.
-4. **Cuts on word boundaries.** Clips are chosen by sentence ID and snapped to exact word
-   timings with natural breathing room, so nothing starts or ends mid-word.
-5. **Renders in one FFmpeg pass**: frame-accurate cut, reframe to 9:16 / 16:9 / 1:1 / 4:5,
-   word-timed captions, audio fades and loudness normalised to -14 LUFS.
-6. **Writes `clips.md`** with titles, timings, captions and hashtags ready to paste, plus a
-   clean `.srt` per clip.
+- **Downloads** the video with its chapters and YouTube's "most replayed" heatmap.
+- **Transcribes** with Whisper (faster-whisper) for word-level timing, using the GPU when
+  available. YouTube captions are the fallback.
+- **Finds the moments.** Claude reads a numbered transcript marked with pauses, chapters and
+  replay peaks, then proposes clips per platform: hook-first shorts and full-story long cuts.
+- **Cuts on word boundaries,** with natural breathing room, so nothing starts or ends mid-word.
+- **Renders in one FFmpeg pass:** cut, reframe, captions, audio fades and loudness normalised
+  to -14 LUFS.
+- **Writes `clips.md`** with titles, captions and hashtags ready to paste, plus a clean `.srt`
+  per clip.
 
 ### Platforms
 
@@ -32,7 +76,7 @@
 | Instagram Reels | 9:16 | 15-60s | karaoke |
 | YouTube | 16:9 | 3-10 min | classic |
 
-Any clip can also be rendered in other aspects.
+Any clip can also be rendered in 1:1 or 4:5.
 
 ### Reframing (16:9 to vertical)
 
@@ -43,6 +87,11 @@ Any clip can also be rendered in other aspects.
 - **fit**: letterbox with black bars.
 
 ### Caption styles
+
+<p align="center">
+  <img src="assets/styles.jpg" width="820" alt="The same frame with karaoke, pop, classic and boxed captions">
+  <br><sub>karaoke · pop · classic · boxed</sub>
+</p>
 
 - **karaoke**: 2-4 bold words at a time; the spoken word lights up.
 - **pop**: 1-2 big words with a pop-in animation.
@@ -81,10 +130,11 @@ bash install_as_skill.sh
 
 This copies the skill to `~/.claude/skills/youtube-clipper/`, installs the Python packages in
 `requirements.txt` (yt-dlp, faster-whisper, opencv-python-headless) and runs an environment
-check.
+check. Run it again to update.
 
 **NVIDIA GPU on Windows:** `pip install nvidia-cublas-cu12` lets Whisper run on the GPU with
 the large-v3-turbo model, which is faster and more accurate than the CPU default (small.en).
+The 21-minute demo video above transcribed in under 3 minutes this way.
 
 ## Usage
 
@@ -124,7 +174,7 @@ python $S/render_clips.py clip_plan.json --preview
 python $S/render_clips.py clip_plan.json
 
 # or a single clip from raw times:
-python $S/render_clip.py video.mp4 transcript.json 8:11.6 8:54.4 out.mp4 --aspect 9:16 --style karaoke
+python $S/render_clip.py video.mp4 transcript.json 8:11.6 8:54.4 out.mp4 --aspect 9:16 --style karaoke --title "My hook"
 ```
 
 ## Configuration
@@ -145,10 +195,12 @@ cookies.
 | `render_clips.py` | Batch: plan → check → preview → render → `clips.md` |
 | `render_clip.py` | Renders one clip (cut + reframe + captions + audio) |
 | `transcript.py` | Transcript model, caption parsing, sentence building, cut snapping |
-| `subtitles.py` | ASS caption styles and SRT export |
+| `subtitles.py` | ASS caption styles, title overlay and SRT export |
 | `reframe.py` | Face tracking and crop planning |
 | `presets.py` | Platform and aspect presets |
 
 ## License
 
 MIT. Based on [op7418/Youtube-clipper-skill](https://github.com/op7418/Youtube-clipper-skill).
+Demo footage in `assets/` is from a CC BY 3.0 video (credited above) and isn't covered by the
+MIT licence.

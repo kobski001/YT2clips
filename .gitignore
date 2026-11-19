@@ -55,6 +55,7 @@ models/
 
 # Test artifacts
 *.jpg
+!assets/*.jpg
 *.ass
 *.transcript.json
 *.sentences.txt
