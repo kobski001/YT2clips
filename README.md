@@ -150,16 +150,20 @@ transcribes, proposes clips, previews the framing and renders.
 Output:
 
 ```
-youtube-clips/<video_id>/
-├── clips.md                        # titles, timings, captions, hashtags
-├── 01_Life_will_hit_you_with_a_brick/
-│   ├── 01_..._tiktok_9x16.mp4
-│   └── 01_....srt                  # clean captions for upload
-└── 02_Love_and_loss/
-    ├── 02_..._youtube_16x9.mp4
-    ├── 02_..._youtube_9x16.mp4
-    └── 02_....srt
+<CLIPS_ROOT>/                         # set in .env; default = current folder
+└── Steve Jobs/                      # one folder per creator
+    └── Stanford commencement speech (UF8uR6Z6KLc)/
+        ├── karaoke/                 # one folder per caption style (karaoke, pop, clean, ...)
+        │   ├── clips.md             # titles, timings, captions, hashtags
+        │   ├── 01_Life_will_hit_you_with_a_brick/
+        │   │   ├── 01_..._tiktok_9x16.mp4
+        │   │   └── 01_....srt       # clean captions for upload
+        │   └── 02_Love_and_loss/
+        └── source/                  # video, transcript, clip plan: delete to free space
 ```
+
+Caption styles: `karaoke`, `pop`, `classic`, `boxed`, `none` (no captions, title kept) and
+`clean` (no captions and no title, just the video).
 
 ### Using the scripts directly
 

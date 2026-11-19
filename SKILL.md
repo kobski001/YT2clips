@@ -21,8 +21,29 @@ Scripts live in `scripts/` next to this file (the skill's base directory, usuall
 `python` (Windows) or `python3` (macOS/Linux) and **quote paths** (they often contain spaces).
 Every script prints a final `RESULT_JSON: {...}` line; read values from it.
 
-Work in the user's current directory: downloads go to `./youtube-downloads/`, clips to
-`./youtube-clips/<video_id>/`.
+## Folder layout (always use this)
+
+Everything goes under the **clips root**: `CLIPS_ROOT` in the skill's `.env`
+(`grep CLIPS_ROOT "$S/../.env"`), or the current directory if it is not set. Clips are
+organized by creator, then video, and each video keeps its downloads in its own `source\`:
+
+```
+<CLIPS_ROOT>/
+  <Creator>/                          e.g. Steve Jobs, Rick Steves
+    <Short video title> (<video_id>)/  e.g. Stanford commencement speech (UF8uR6Z6KLc)
+      <style>/                         one folder per caption style rendered: karaoke, pop, clean...
+        01_<clip title>/  (.mp4 per aspect + .srt)
+        clips.md, clips.json
+      source/                          video, captions, meta, transcript, sentences, clip_plan.json
+```
+- **Creator**: a clean human name from `meta.channel` ("Rick Steves' Europe" -> `Rick Steves`). List
+  `<CLIPS_ROOT>` first and reuse an existing folder for the same person, alt channels included
+  ("JaneDoeClips" -> `Jane Doe`).
+- **Video folder**: short readable title (no ALL CAPS, no characters Windows forbids) + ` (<id>)`.
+  If a folder for that id already exists anywhere under the creator, reuse it.
+- **Style folder**: a later render of the same clips in another style goes in its own style
+  folder, so nothing is overwritten.
+- `source/` is disposable: the user deletes it once the clips are posted. Never put clips there.
 
 ## 1. Check the environment
 
@@ -39,7 +60,8 @@ Get the URL if not given. Then ask with AskUserQuestion (skip anything the user 
 - **Platforms** (multiSelect): TikTok, YouTube Shorts, Instagram Reels, YouTube (16:9 long clip).
 - **How many clips** per platform (default: 3 short-form, 1-2 long).
 - **Caption style**: karaoke (default for vertical: word-by-word highlight), pop (1-2 huge
-  words, high energy), classic (YouTube style), boxed (text on dark box), none.
+  words, high energy), classic (YouTube style), boxed (text on dark box), none (no captions,
+  title kept), **clean (no captions and no title: just the video)**.
 
 Platform defaults (see `python "$S/presets.py"`):
 
@@ -54,11 +76,15 @@ Any clip can also be rendered in extra aspects (`"aspects": ["9:16", "16:9", "1:
 
 ## 3. Download
 
+Strip tracking parameters from the URL (`?si=`, `&t=`). Download into a staging folder:
 ```bash
-python "$S/download_video.py" "<url>" youtube-downloads
+python "$S/download_video.py" "<url>" "<CLIPS_ROOT>/_incoming/<video_id>"
 ```
-Gives `video_path`, `subtitle_path` (may be null), `meta_path` (title, creator chapters,
-"most replayed" heatmap).
+Gives `video_path`, `subtitle_path` (may be null), `meta_path` (title, channel, creator
+chapters, "most replayed" heatmap). Read the meta, pick the creator and video folder names
+(see Folder layout), then **move** the staging folder to `<video folder>/source` (`mv`; same
+drive, instant) and remove the empty `_incoming`. All later paths point inside `source/`.
+Use `run_in_background` for long videos.
 
 ## 4. Transcribe with Whisper
 
@@ -106,14 +132,17 @@ type numbers in "Other"). Default: all.
 
 ## 6. Write the plan, check it, preview
 
-Write `clip_plan.json` in the working directory (paths relative to it):
+Write `<video folder>/source/clip_plan.json` with **absolute paths** (forward slashes are fine)
+and `output_dir` set to the style folder. For another style of the same clips, write a second
+plan (e.g. `clip_plan_clean.json`) with a different `output_dir`:
 
 ```json
 {
-  "video": "youtube-downloads/<id>.mp4",
-  "transcript": "youtube-downloads/<id>.transcript.json",
-  "meta": "youtube-downloads/<id>.meta.json",
-  "defaults": {"reframe": "blur", "highlight": "yellow"},
+  "video": "<video folder>/source/<id>.mp4",
+  "transcript": "<video folder>/source/<id>.transcript.json",
+  "meta": "<video folder>/source/<id>.meta.json",
+  "output_dir": "<video folder>/karaoke",
+  "defaults": {"reframe": "blur", "highlight": "yellow", "subtitle_style": "karaoke"},
   "clips": [
     {"title": "Life will hit you with a brick", "platform": "tiktok",
      "start_sentence": 92, "end_sentence": 103,
@@ -130,6 +159,8 @@ Write `clip_plan.json` in the working directory (paths relative to it):
 - Vertical clips default to `blur`: the whole original frame, full width, over a zoomed and blurred
   copy, with `title` as text in the top band (`title_text` to change it, `""` to turn it off)
   and captions in the bottom band.
+- `"subtitle_style": "clean"` renders no captions and no title band (it overrides `title_text`);
+  the `.srt` is still written for YouTube closed captions.
 - Per-clip overrides: `aspects`, `subtitle_style`, `reframe` (blur|auto|crop|fit), `title_text`, `title_size`, `crop_x`
   (0..1, fixed crop position), `highlight` (yellow|green|cyan|pink|orange|red|#RRGGBB),
   `sub_size` (1.0 = default), `sub_margin` (caption height from bottom, 0..1).
@@ -158,7 +189,9 @@ holds titles, timings, captions and hashtags ready to paste.
 
 ## 8. Report
 
-Show the output folder, a table of files (platform, length, size), and point to `clips.md`.
+Show the style folder, a table of files (platform, length, size), and point to `clips.md`.
+Say how big `source/` is and that it can be deleted once the clips are posted (keep it if more
+clips or styles might be wanted later: re-rendering needs it).
 Offer next steps: more clips, other platforms/aspects, a different caption style, or
 re-rendering one clip (`--only 2`).
 

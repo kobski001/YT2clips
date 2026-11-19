@@ -70,8 +70,19 @@ def download_video(url: str, output_dir: str = None, max_height: int = 1080) -> 
         print(f"  Channel:  {info.get('channel') or info.get('uploader')}")
         print(f"  Duration: {format_duration(info.get('duration') or 0)}")
         print("Downloading...")
-        info = ydl.extract_info(url, download=True)
-        video_path = Path(ydl.prepare_filename(info)).with_suffix(".mp4")
+        try:
+            info = ydl.extract_info(url, download=True)
+            video_path = Path(ydl.prepare_filename(info)).with_suffix(".mp4")
+        except yt_dlp.utils.DownloadError as e:
+            if "subtitle" not in str(e).lower():
+                raise
+            print(f"Captions failed ({e}); retrying without captions")
+            info = None
+    if info is None:
+        opts.update(writesubtitles=False, writeautomaticsub=False)
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            video_path = Path(ydl.prepare_filename(info)).with_suffix(".mp4")
 
     if not video_path.exists():
         raise RuntimeError("Download finished but the video file was not found")

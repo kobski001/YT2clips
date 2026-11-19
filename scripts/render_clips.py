@@ -18,7 +18,8 @@ clip_plan.json:
     {"title": "Why most diets fail", "platform": "tiktok",
      "start_sentence": 112, "end_sentence": 121,
      "aspects": ["9:16"],                       (optional; default = platform's aspect)
-     "subtitle_style": "karaoke",               (optional; default = platform's style)
+     "subtitle_style": "karaoke",               (optional; default = platform's style;
+                                                 "clean" = no captions AND no title)
      "reframe": "blur", "crop_x": 0.4,          (optional overrides; blur|auto|crop|fit)
      "title_text": "...",                       (optional; text in the top blurred band,
                                                  defaults to "title"; "" turns it off)
@@ -145,6 +146,7 @@ def main():
         name = f"{c['n']:02d}_{sanitize_filename(c['title'], 50)}"
         clip_dir = out_dir / name
         files = []
+        clean = c["subtitle_style"] == "clean"   # no burned-in captions and no title band
         for aspect in c["aspects"]:
             target = clip_dir / f"{name}_{c['platform']}_{aspect.replace(':', 'x')}.mp4"
             srt = clip_dir / f"{name}.srt"
@@ -154,13 +156,13 @@ def main():
                 aspect=aspect,
                 reframe=c.get("reframe") or defaults.get("reframe", "blur"),
                 crop_x=c.get("crop_x", defaults.get("crop_x")),
-                style=c["subtitle_style"],
+                style="none" if clean else c["subtitle_style"],
                 highlight=c.get("highlight") or defaults.get("highlight"),
                 font=c.get("font") or defaults.get("font"),
                 sub_size=c.get("sub_size", defaults.get("sub_size", 1.0)),
                 sub_margin=c.get("sub_margin", defaults.get("sub_margin")),
                 loudnorm=defaults.get("loudnorm", True),
-                title=c.get("title_text", defaults.get("title_text", c.get("title"))),
+                title="" if clean else c.get("title_text", defaults.get("title_text", c.get("title"))),
                 title_font=c.get("title_font") or defaults.get("title_font"),
                 title_size=c.get("title_size", defaults.get("title_size", 1.0)),
                 gpu=args.gpu, preview=args.preview,
