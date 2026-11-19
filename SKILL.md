@@ -60,8 +60,10 @@ Get the URL if not given. Then ask with AskUserQuestion (skip anything the user 
 - **Platforms** (multiSelect): TikTok, YouTube Shorts, Instagram Reels, YouTube (16:9 long clip).
 - **How many clips** per platform (default: 3 short-form, 1-2 long).
 - **Caption style**: karaoke (default for vertical: word-by-word highlight), pop (1-2 huge
-  words, high energy), classic (YouTube style), boxed (text on dark box), none (no captions,
-  title kept), **clean (no captions and no title: just the video)**.
+  words, high energy), classic (YouTube style), boxed (text on dark box), **title only (just
+  the text in the top band, no subtitles)**, **clean (no subtitles and no title: just the
+  video)**. In the plan these are `karaoke`, `pop`, `classic`, `boxed`, `title`, `clean`
+  (`none` is an old alias of `title`). The style is also the output folder name.
 
 Platform defaults (see `python "$S/presets.py"`):
 
@@ -130,6 +132,19 @@ Propose roughly 1.5x as many candidates as requested. Show them as a numbered ta
 with one line on *why* each works. Ask which to render (AskUserQuestion; the user can
 type numbers in "Other"). Default: all.
 
+For every candidate, also prepare **3 on-screen title options** (the text in the top band),
+each taking a different angle (see "On-screen titles" in `references/clip-selection.md`).
+
+## 5b. Choose on-screen titles
+
+Skip this step when the style is `clean`, or for clips with no top band (16:9-only clips, or
+`reframe` other than `blur`). If the user said "you pick"/"auto", use option 1 and don't ask.
+
+Otherwise ask with AskUserQuestion: **one question per chosen clip**, at most 4 questions per
+call (make more calls if there are more clips). Question: `Clip <n> (<label>): on-screen title?`,
+header `Clip <n>`, the 3 options as answers (label = the exact title text, description = its
+angle, e.g. "curiosity gap"). The user can type their own in "Other"; use it exactly as typed.
+
 ## 6. Write the plan, check it, preview
 
 Write `<video folder>/source/clip_plan.json` with **absolute paths** (forward slashes are fine)
@@ -146,6 +161,10 @@ plan (e.g. `clip_plan_clean.json`) with a different `output_dir`:
   "clips": [
     {"title": "Life will hit you with a brick", "platform": "tiktok",
      "start_sentence": 92, "end_sentence": 103,
+     "title_text": "Getting fired from Apple was the best thing",
+     "title_options": ["Getting fired from Apple was the best thing",
+                       "Steve Jobs on the worst year of his life",
+                       "Why did Apple fire Steve Jobs?"],
      "hook": "Sometimes life is going to hit you in the head with a brick.",
      "caption": "<post caption / description written for that platform>",
      "hashtags": ["stevejobs", "motivation"]},
@@ -159,9 +178,14 @@ plan (e.g. `clip_plan_clean.json`) with a different `output_dir`:
 - Vertical clips default to `blur`: the whole original frame, full width, over a zoomed and blurred
   copy, with `title` as text in the top band (`title_text` to change it, `""` to turn it off)
   and captions in the bottom band.
-- `"subtitle_style": "clean"` renders no captions and no title band (it overrides `title_text`);
-  the `.srt` is still written for YouTube closed captions.
-- Per-clip overrides: `aspects`, `subtitle_style`, `reframe` (blur|auto|crop|fit), `title_text`, `title_size`, `crop_x`
+- `title_text` = the title chosen in step 5b (exactly as picked or typed); `title_options` =
+  all 3 suggestions (unused ones are listed in `clips.md` for later re-renders or A/B tests);
+  `title` = a short label used for folder names.
+- `"subtitle_style": "title"` renders only the top-band title, no subtitles. It needs the
+  blurred band (vertical clip, `reframe` blur); otherwise the clip ends up with no text.
+- `"subtitle_style": "clean"` renders no captions and no title band (it overrides `title_text`).
+  The `.srt` is still written for YouTube closed captions with every style.
+- Per-clip overrides: `aspects`, `subtitle_style`, `reframe` (blur|auto|crop|fit), `title_text`, `title_options`, `title_size`, `crop_x`
   (0..1, fixed crop position), `highlight` (yellow|green|cyan|pink|orange|red|#RRGGBB),
   `sub_size` (1.0 = default), `sub_margin` (caption height from bottom, 0..1).
 - Write a real `caption` + `hashtags` per clip for its platform (TikTok/Reels: 1-2 punchy

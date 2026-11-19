@@ -97,6 +97,8 @@ Any clip can also be rendered in 1:1 or 4:5.
 - **pop**: 1-2 big words with a pop-in animation.
 - **classic**: YouTube-style, two lines with an outline.
 - **boxed**: text on a translucent box.
+- **title only**: just the title in the top band, no subtitles.
+- **clean**: no text at all, just the video.
 
 Captions are sized in output pixels, wrapped to fit the frame, and kept clear of the
 TikTok/Shorts UI.
@@ -145,7 +147,8 @@ Make 3 TikToks and a YouTube highlight from https://www.youtube.com/watch?v=VIDE
 ```
 
 Claude checks the environment, asks about platforms and caption style, then downloads,
-transcribes, proposes clips, previews the framing and renders.
+transcribes and proposes clips. For each clip it suggests 3 on-screen titles; pick one or
+type your own. Then it previews the framing and renders.
 
 Output:
 
@@ -162,7 +165,7 @@ Output:
         └── source/                  # video, transcript, clip plan: delete to free space
 ```
 
-Caption styles: `karaoke`, `pop`, `classic`, `boxed`, `none` (no captions, title kept) and
+Caption styles: `karaoke`, `pop`, `classic`, `boxed`, `title` (title only, no subtitles) and
 `clean` (no captions and no title, just the video).
 
 ### Using the scripts directly

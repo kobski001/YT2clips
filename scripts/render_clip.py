@@ -11,9 +11,14 @@ Reframe modes (when source and target aspect differ):
   crop   fixed crop; position with --crop-x 0..1 (0 = left edge, 0.5 = centre, 1 = right)
   fit    whole frame fitted with black bars
 
+Caption styles: karaoke, pop, classic, boxed (word-timed subtitles, plus the title if given);
+  title  no subtitles, only the --title text in the top band ("none" is an old alias)
+  clean  no subtitles and no title: just the video
+
 Usage:
   python render_clip.py <video> <transcript.json> <start> <end> <output.mp4>
-         [--aspect 9:16] [--reframe blur] [--title "text"] [--crop-x 0.5] [--style karaoke|pop|classic|boxed|none]
+         [--aspect 9:16] [--reframe blur] [--title "text"] [--crop-x 0.5]
+         [--style karaoke|pop|classic|boxed|title|clean]
          [--highlight yellow] [--font "Arial Black"] [--sub-size 1.0] [--sub-margin 0.27]
          [--no-loudnorm] [--gpu] [--preview]
 <start>/<end> are seconds or [HH:]MM:SS.mmm and are used exactly as given (snap them first;
@@ -90,14 +95,22 @@ def render_clip(video, transcript, start, end, output, aspect="9:16", reframe="b
     if duration <= 0:
         raise ValueError("end must be after start")
 
+    # "title" = title text only, "clean" = no text at all; both render without subtitles
+    label = style = (style or "karaoke").lower()
+    if style == "clean":
+        style, title = "none", None
+    elif style == "title":
+        style = "none"
+
     info = probe_video(video)
     out_w, out_h = output_size(aspect, info["width"], info["height"])
-    ffmpeg = find_ffmpeg(require_libass=style != "none")
+    # Subtitles and the title are both ASS overlays, so either one needs libass
+    ffmpeg = find_ffmpeg(require_libass=style != "none" or bool(title))
     tdata = load_transcript(transcript) if isinstance(transcript, (str, Path)) else transcript
     words = words_in_range(tdata["words"], start, end)
 
     log(f"Rendering {output.name}: {format_duration(duration)} @ {out_w}x{out_h} ({aspect}), "
-        f"subtitles: {style}, reframe: {reframe}")
+        f"captions: {label}, reframe: {reframe}")
 
     vf = _video_filter(info, out_w, out_h, reframe, crop_x, video, start, end, log)
 
@@ -117,7 +130,8 @@ def render_clip(video, transcript, start, end, output, aspect="9:16", reframe="b
             Path(tmp, "title.ass").write_text(ass, encoding="utf-8")
             vf += f",ass=title.ass{fonts}"
         elif title:
-            log("  title: skipped (no blurred band above the video in this format)")
+            log("  title: skipped (no blurred band above the video in this format)"
+                + ("; WARNING: with the 'title' style this clip has no text at all" if label in ("title", "none") else ""))
         if style != "none" and words:
             margin = sub_margin if sub_margin is not None else SUBTITLE_MARGIN.get(aspect, 0.08)
             if sub_margin is None and band:
@@ -184,7 +198,7 @@ def main():
     ap.add_argument("--title-font")
     ap.add_argument("--title-size", type=float, default=1.0)
     ap.add_argument("--crop-x", type=float)
-    ap.add_argument("--style", default="karaoke", choices=["karaoke", "pop", "classic", "boxed", "none"])
+    ap.add_argument("--style", default="karaoke", choices=["karaoke", "pop", "classic", "boxed", "title", "clean", "none"])
     ap.add_argument("--highlight")
     ap.add_argument("--font")
     ap.add_argument("--sub-size", type=float, default=1.0)

@@ -19,10 +19,14 @@ clip_plan.json:
      "start_sentence": 112, "end_sentence": 121,
      "aspects": ["9:16"],                       (optional; default = platform's aspect)
      "subtitle_style": "karaoke",               (optional; default = platform's style;
-                                                 "clean" = no captions AND no title)
+                                                 karaoke|pop|classic|boxed|title|clean;
+                                                 "title" = top text only, no subtitles;
+                                                 "clean" = no subtitles AND no title)
      "reframe": "blur", "crop_x": 0.4,          (optional overrides; blur|auto|crop|fit)
      "title_text": "...",                       (optional; text in the top blurred band,
                                                  defaults to "title"; "" turns it off)
+     "title_options": ["...", "...", "..."],    (optional; the suggested on-screen titles,
+                                                 listed in clips.md as "other title ideas")
      "hook": "...", "caption": "...", "hashtags": ["fitness", "diet"]},
     {"title": "...", "platform": "youtube", "start": "12:03.5", "end": "18:40"}
   ]
@@ -83,7 +87,15 @@ def resolve_plan(plan: dict, base: Path):
     return video, transcript, clips, plan.get("defaults", {})
 
 
+def screen_title(c: dict, defaults: dict):
+    """The text shown in the top band for this clip ('' or None = no title)."""
+    if c["subtitle_style"] == "clean":
+        return None
+    return c.get("title_text", defaults.get("title_text", c.get("title")))
+
+
 def write_manifest(out_dir: Path, plan: dict, clips: list, meta: dict):
+    defaults = plan.get("defaults", {})
     lines = [f"# Clips: {meta.get('title', Path(plan['video']).stem)}", ""]
     if meta.get("url"):
         lines += [f"Source: {meta['url']}", ""]
@@ -92,6 +104,12 @@ def write_manifest(out_dir: Path, plan: dict, clips: list, meta: dict):
                   f"- Platform: {c['platform_label']} | Length: {format_duration(c['duration'])} "
                   f"| Source time: {short_time(c['cut_start'])}-{short_time(c['cut_end'])}",
                   f"- Files: " + ", ".join(f"`{Path(f).name}`" for f in c.get("files", []))]
+        on_screen = screen_title(c, defaults)
+        if on_screen:
+            lines.append(f"- On-screen title: {on_screen}")
+        others = [t for t in c.get("title_options") or [] if t and t != on_screen]
+        if others:
+            lines.append("- Other title ideas: " + " / ".join(others))
         if c.get("hook"):
             lines.append(f"- Hook: {c['hook']}")
         if c.get("caption"):
@@ -146,7 +164,6 @@ def main():
         name = f"{c['n']:02d}_{sanitize_filename(c['title'], 50)}"
         clip_dir = out_dir / name
         files = []
-        clean = c["subtitle_style"] == "clean"   # no burned-in captions and no title band
         for aspect in c["aspects"]:
             target = clip_dir / f"{name}_{c['platform']}_{aspect.replace(':', 'x')}.mp4"
             srt = clip_dir / f"{name}.srt"
@@ -156,13 +173,13 @@ def main():
                 aspect=aspect,
                 reframe=c.get("reframe") or defaults.get("reframe", "blur"),
                 crop_x=c.get("crop_x", defaults.get("crop_x")),
-                style="none" if clean else c["subtitle_style"],
+                style=c["subtitle_style"],
                 highlight=c.get("highlight") or defaults.get("highlight"),
                 font=c.get("font") or defaults.get("font"),
                 sub_size=c.get("sub_size", defaults.get("sub_size", 1.0)),
                 sub_margin=c.get("sub_margin", defaults.get("sub_margin")),
                 loudnorm=defaults.get("loudnorm", True),
-                title="" if clean else c.get("title_text", defaults.get("title_text", c.get("title"))),
+                title=screen_title(c, defaults),
                 title_font=c.get("title_font") or defaults.get("title_font"),
                 title_size=c.get("title_size", defaults.get("title_size", 1.0)),
                 gpu=args.gpu, preview=args.preview,

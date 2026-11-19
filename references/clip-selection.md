@@ -42,6 +42,16 @@ accepting a long clip.
 - 3-10 minutes. Trim housekeeping (intros, sponsor reads, "before we start...").
 - The title should promise what the clip delivers.
 
+## On-screen titles
+
+The title sits in the top band for the whole clip, so it must hook in the first second.
+- 2-7 words where possible (the band fits about 3 lines at ~22 characters); plain language.
+- Don't repeat the clip's first spoken line; add context or tension the viewer doesn't have yet.
+- No clickbait the clip doesn't pay off.
+- Give 3 options with different angles, e.g. curiosity gap ("Why Italian kids think Americans
+  have no teeth"), bold statement ("Americans have no teeth, apparently"), question ("Do
+  Americans really have soft bread?").
+
 ## Variety
 
 When making several clips, mix types (story, advice, hot take, funny moment) and spread them
@@ -61,3 +71,6 @@ contain a short clip; that's fine.
 - karaoke: default for vertical; works for almost everything.
 - pop: fast, high-energy speech, comedy, hype. Avoid for slow, thoughtful talks.
 - classic / boxed: 16:9 YouTube; boxed when the background is bright or busy.
+- title: vertical clips where the visuals carry it (gameplay, reactions, music) and subtitles
+  would clutter; needs the blur reframe.
+- clean: no text at all, e.g. to add text later in a phone editor.
