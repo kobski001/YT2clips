@@ -113,7 +113,7 @@ Write `clip_plan.json` in the working directory (paths relative to it):
   "video": "youtube-downloads/<id>.mp4",
   "transcript": "youtube-downloads/<id>.transcript.json",
   "meta": "youtube-downloads/<id>.meta.json",
-  "defaults": {"reframe": "auto", "highlight": "yellow"},
+  "defaults": {"reframe": "blur", "highlight": "yellow"},
   "clips": [
     {"title": "Life will hit you with a brick", "platform": "tiktok",
      "start_sentence": 92, "end_sentence": 103,
@@ -127,7 +127,10 @@ Write `clip_plan.json` in the working directory (paths relative to it):
 ```
 - Always use **sentence ids** (inclusive). The renderer converts them to exact word-boundary
   cuts with natural breathing room. Raw `"start"/"end"` times also work and are snapped inward.
-- Per-clip overrides: `aspects`, `subtitle_style`, `reframe` (auto|crop|blur|fit), `crop_x`
+- Vertical clips default to `blur`: the whole original frame, full width, over a zoomed and blurred
+  copy, with `title` as text in the top band (`title_text` to change it, `""` to turn it off)
+  and captions in the bottom band.
+- Per-clip overrides: `aspects`, `subtitle_style`, `reframe` (blur|auto|crop|fit), `title_text`, `title_size`, `crop_x`
   (0..1, fixed crop position), `highlight` (yellow|green|cyan|pink|orange|red|#RRGGBB),
   `sub_size` (1.0 = default), `sub_margin` (caption height from bottom, 0..1).
 - Write a real `caption` + `hashtags` per clip for its platform (TikTok/Reels: 1-2 punchy
@@ -141,8 +144,8 @@ python "$S/render_clips.py" clip_plan.json --preview   # one .jpg still per outp
 In `--check` output, make sure each clip **starts** with a line that works as an opener and
 **ends** on a finished thought; fix sentence ids if not, and fix any WARNING by adjusting ids.
 **Look at every preview .jpg** (Read tool): the speaker should be in frame and captions
-readable and clear of faces. Fixes: speaker cut off -> `"reframe": "blur"` or a `crop_x`;
-several people in a wide shot -> `"reframe": "blur"`; captions covering something -> `sub_margin`.
+readable and clear of faces. Fixes: want a tight face-follow crop instead of blur -> `"reframe": "auto"` (or `crop` + `crop_x`);
+title too long for the band -> shorter `title_text`; captions covering something -> `sub_margin`.
 
 ## 7. Render
 

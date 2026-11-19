@@ -13,13 +13,15 @@ clip_plan.json:
   "transcript": "youtube-downloads/abc123.transcript.json",
   "meta": "youtube-downloads/abc123.meta.json",          (optional)
   "output_dir": "youtube-clips/abc123",                   (optional)
-  "defaults": {"reframe": "auto", "highlight": "yellow", "loudnorm": true},   (optional)
+  "defaults": {"reframe": "blur", "highlight": "yellow", "loudnorm": true},   (optional)
   "clips": [
     {"title": "Why most diets fail", "platform": "tiktok",
      "start_sentence": 112, "end_sentence": 121,
      "aspects": ["9:16"],                       (optional; default = platform's aspect)
      "subtitle_style": "karaoke",               (optional; default = platform's style)
-     "reframe": "auto", "crop_x": 0.4,          (optional overrides)
+     "reframe": "blur", "crop_x": 0.4,          (optional overrides; blur|auto|crop|fit)
+     "title_text": "...",                       (optional; text in the top blurred band,
+                                                 defaults to "title"; "" turns it off)
      "hook": "...", "caption": "...", "hashtags": ["fitness", "diet"]},
     {"title": "...", "platform": "youtube", "start": "12:03.5", "end": "18:40"}
   ]
@@ -150,7 +152,7 @@ def main():
             result = render_clip(
                 str(video), transcript, c["cut_start"], c["cut_end"], str(target),
                 aspect=aspect,
-                reframe=c.get("reframe") or defaults.get("reframe", "auto"),
+                reframe=c.get("reframe") or defaults.get("reframe", "blur"),
                 crop_x=c.get("crop_x", defaults.get("crop_x")),
                 style=c["subtitle_style"],
                 highlight=c.get("highlight") or defaults.get("highlight"),
@@ -158,6 +160,9 @@ def main():
                 sub_size=c.get("sub_size", defaults.get("sub_size", 1.0)),
                 sub_margin=c.get("sub_margin", defaults.get("sub_margin")),
                 loudnorm=defaults.get("loudnorm", True),
+                title=c.get("title_text", defaults.get("title_text", c.get("title"))),
+                title_font=c.get("title_font") or defaults.get("title_font"),
+                title_size=c.get("title_size", defaults.get("title_size", 1.0)),
                 gpu=args.gpu, preview=args.preview,
                 srt_output=None if args.preview else str(srt))
             files.append(result)

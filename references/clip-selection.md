@@ -50,9 +50,9 @@ contain a short clip; that's fine.
 
 ## Reframing choice (16:9 source -> 9:16)
 
-- One speaker on camera: `auto` (face tracking).
-- Two people side by side, wide shots, slides, screen recordings, gameplay: `blur` (whole
-  frame visible, blurred fill).
+- Default: `blur` (whole frame at full width over a zoomed blurred fill, title in the top band,
+  captions in the bottom band). Right for streams, gameplay, wide shots, slides, 2+ people.
+- One speaker filling the frame where a tight, full-screen face shot is wanted: `auto`.
 - Speaker always on one side: `crop` with `crop_x` (e.g. 0.3 left, 0.7 right).
 - Already vertical source: no reframing needed for 9:16.
 

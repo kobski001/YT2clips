@@ -36,8 +36,9 @@ Any clip can also be rendered in other aspects.
 
 ### Reframing (16:9 to vertical)
 
+- **blur** (default): the whole original frame at full width, over a zoomed, blurred copy that
+  fills the screen. The clip title goes in the top band and captions in the bottom band.
 - **auto**: follows the speaker's face (OpenCV YuNet) with steady holds and clean switches.
-- **blur**: shows the whole frame with a blurred fill. Good for two people, slides and gameplay.
 - **crop**: fixed crop position.
 - **fit**: letterbox with black bars.
 

@@ -194,6 +194,47 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return header + "\n".join(events) + "\n"
 
 
+def build_title_ass(text: str, width: int, height: int, center_y: float, duration: float,
+                    font: str = None, size_scale: float = 1.0, max_height: float = None) -> str:
+    """Static title text (e.g. the clip hook) centred at center_y px, for the blurred top band."""
+    font = font or env("TITLE_FONT") or "Arial"
+    text = " ".join(text.replace("{", "(").replace("}", ")").replace("\\", "/").split())
+    size = round(width * 0.068 * size_scale)
+    # Shrink until the wrapped text fits in the band
+    while True:
+        max_line = max(8, int(width * 0.86 / (size * 0.47)))
+        words, lines, cur = text.split(), [], ""
+        for w in words:
+            if cur and len(cur) + 1 + len(w) > max_line:
+                lines.append(cur)
+                cur = w
+            else:
+                cur = f"{cur} {w}".strip()
+        if cur:
+            lines.append(cur)
+        if not max_height or len(lines) * size * 1.2 <= max_height or size <= 28:
+            break
+        size = int(size * 0.9)
+    outline, shadow = round(size * 0.04, 1), round(size * 0.06, 1)
+    end = seconds_to_time(max(duration, 0.1))[1:-1]
+    return f"""[Script Info]
+ScriptType: v4.00+
+PlayResX: {width}
+PlayResY: {height}
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Title,{font},{size},&H00FFFFFF,&H000000FF,&H60000000,&H80000000,-1,0,0,0,100,100,0,0,1,{outline},{shadow},5,0,0,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,{end},Title,,0,0,0,,{{\\pos({width // 2},{int(center_y)})}}{r"\N".join(lines)}
+"""
+
+
 # ---------------------------------------------------------------------------
 # SRT (clean captions to upload alongside the video)
 # ---------------------------------------------------------------------------
